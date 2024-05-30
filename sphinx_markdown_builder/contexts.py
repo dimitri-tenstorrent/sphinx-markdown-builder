@@ -341,6 +341,17 @@ class TitleContext(NoLineBreakContext):
         return f"{self.section_prefix} {content}"
 
 
+class CodeContext(SubContext):
+    def __init__(self, params=SubContextParams(2, 2)):
+        super().__init__(params)
+
+    def make(self):
+        content = super().make()
+        if not content:
+            return ""
+        return f'```cpp\n{content}\n```'
+
+
 class MetaContext(NoLineBreakContext):
     def __init__(self, name: str, params=SubContextParams(1, 1, target="head")):
         super().__init__("<br/>", params)
