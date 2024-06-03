@@ -32,6 +32,8 @@ from docutils import languages, nodes
 from sphinx.util.docutils import SphinxTranslator
 
 from sphinx_markdown_builder.contexts import (
+    CodeAreaBlockContext,
+    CodeContext,
     CommaSeparatedContext,
     ContextStatus,
     DocInfoContext,
@@ -293,6 +295,7 @@ class MarkdownTranslator(SphinxTranslator):  # pylint: disable=too-many-public-m
     def unknown_visit(self, node):
         """Warn once per instance for unsupported nodes."""
         node_type = node.__class__.__name__
+
         if node_type not in self._warned:
             super().unknown_visit(node)
             self._warned.add(node_type)
@@ -472,6 +475,13 @@ class MarkdownTranslator(SphinxTranslator):  # pylint: disable=too-many-public-m
         self._push_context(TitleContext(level))
 
     @pushing_context
+    def visit_CodeAreaNode(self, _node):
+        code_context = CodeAreaBlockContext()
+        code = _node.astext()
+        code_context.add(code)
+        self._push_context(code_context)
+
+    @pushing_context
     @pushing_status
     def visit_subtitle(self, _node):  # pragma: no cover
         """
@@ -622,8 +632,11 @@ class MarkdownTranslator(SphinxTranslator):  # pylint: disable=too-many-public-m
         # We don't want methods to be at the same level as classes,
         # If signature has a non-null class, that's means it is a signature
         # of a class method
-        h_level = 4 if node.get("class", None) else 3
-        self._push_context(TitleContext(h_level))
+
+        code_context = CodeContext()
+        desc_signature = node.astext()
+        code_context.add(f"{desc_signature}")
+        self._push_context(code_context)
 
     def visit_desc_parameterlist(self, _node):
         self._push_context(WrappedContext("(", ")", wrap_empty=True))
