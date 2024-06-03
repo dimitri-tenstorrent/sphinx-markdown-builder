@@ -352,6 +352,28 @@ class CodeContext(SubContext):
         return f'```cpp\n{content}\n```'
 
 
+class CodeAreaBlockContext(SubContext):
+    def __init__(self, params=SubContextParams(2, 2)):
+        super().__init__(params)
+
+    def make(self):
+        content = super().make()
+        if not content:
+            return ""
+        if content.find("<pre>") > -1:
+            start = content.find("<pre>")
+            end = content.find("</pre>") + len("</pre>")
+            return content[start:end]
+        if content.find("```") > -1:
+            # for the CodeAreaNodeContext, the text and the code are doubled
+            # we need to extract just the code portion and ignore
+            # the duplicated plain text.
+            start = content.find("```")
+            end = content.find("```", start + len("```")) + len("```")
+            return content[start:end]
+        else:
+            return f'{content}'
+
 class MetaContext(NoLineBreakContext):
     def __init__(self, name: str, params=SubContextParams(1, 1, target="head")):
         super().__init__("<br/>", params)

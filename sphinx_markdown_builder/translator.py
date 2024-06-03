@@ -32,6 +32,7 @@ from docutils import languages, nodes
 from sphinx.util.docutils import SphinxTranslator
 
 from sphinx_markdown_builder.contexts import (
+    CodeAreaBlockContext,
     CodeContext,
     CommaSeparatedContext,
     ContextStatus,
@@ -294,6 +295,7 @@ class MarkdownTranslator(SphinxTranslator):  # pylint: disable=too-many-public-m
     def unknown_visit(self, node):
         """Warn once per instance for unsupported nodes."""
         node_type = node.__class__.__name__
+
         if node_type not in self._warned:
             super().unknown_visit(node)
             self._warned.add(node_type)
@@ -471,6 +473,13 @@ class MarkdownTranslator(SphinxTranslator):  # pylint: disable=too-many-public-m
         else:
             level = self.status.section_level
         self._push_context(TitleContext(level))
+
+    @pushing_context
+    def visit_CodeAreaNode(self, _node):
+        code_context = CodeAreaBlockContext()
+        code = _node.astext()
+        code_context.add(code)
+        self._push_context(code_context)
 
     @pushing_context
     @pushing_status
